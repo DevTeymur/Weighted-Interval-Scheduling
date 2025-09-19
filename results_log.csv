@@ -1,0 +1,9 @@
+date,time,test_case,total_profit,job_details
+2025-09-19,15:26:08,test1,133,"id:1 r:1 d:1 p:1 w:5 l:25 slots:1 | id:6 r:2 d:6 p:3 w:45 l:100 slots:4,5,6 | id:3 r:6 d:10 p:1 w:30 l:30 slots:10 | id:4 r:5 d:8 p:2 w:40 l:15 slots:7,8 | id:2 r:4 d:8 p:5 w:10 l:2 slots:null | id:5 r:1 d:9 p:3 w:15 l:10 slots:2,3,9"
+2025-09-19,15:28:52,test1,133,"id:1 r:1 d:1 p:1 w:5 l:25 slots:1 | id:6 r:2 d:6 p:3 w:45 l:100 slots:4,5,6 | id:3 r:6 d:10 p:1 w:30 l:30 slots:10 | id:4 r:5 d:8 p:2 w:40 l:15 slots:7,8 | id:2 r:4 d:8 p:5 w:10 l:2 slots:null | id:5 r:1 d:9 p:3 w:15 l:10 slots:2,3,9"
+2025-09-19,15:29:09,test2,44,"id:1 r:2 d:4 p:1 w:10 l:10 slots:4 | id:4 r:3 d:5 p:1 w:15 l:5 slots:5 | id:5 r:6 d:10 p:2 w:10 l:10 slots:9,10 | id:6 r:8 d:10 p:1 w:5 l:1 slots:8 | id:3 r:4 d:9 p:4 w:5 l:1 slots:null | id:2 r:1 d:8 p:5 w:5 l:5 slots:1,2,3,6,7"
+2025-09-19,15:29:23,test3,30,"id:5 r:6 d:9 p:2 w:10 l:100 slots:8,9 | id:4 r:4 d:6 p:1 w:10 l:10 slots:6 | id:1 r:1 d:7 p:2 w:10 l:50 slots:5,7 | id:3 r:1 d:8 p:4 w:10 l:5 slots:1,2,3,4 | id:2 r:2 d:10 p:5 w:1 l:10 slots:null"
+2025-09-19,15:29:46,test4,0,"id:5 r:9 d:9 p:1 w:5 l:5 slots:9 | id:4 r:7 d:9 p:2 w:5 l:5 slots:7,8 | id:3 r:5 d:9 p:3 w:5 l:10 slots:null | id:2 r:3 d:9 p:4 w:5 l:5 slots:3,4,5,6 | id:1 r:1 d:9 p:5 w:10 l:5 slots:null"
+2025-09-19,15:30:07,test5,0,"id:4 r:5 d:5 p:1 w:0 l:5 slots:5 | id:3 r:3 d:7 p:3 w:5 l:5 slots:4,6,7 | id:2 r:2 d:8 p:4 w:5 l:10 slots:null | id:1 r:1 d:9 p:5 w:5 l:5 slots:1,2,3,8,9"
+2025-09-19,15:30:17,test6,125,"id:5 r:2 d:6 p:5 w:120 l:0 slots:2,3,4,5,6 | id:1 r:4 d:4 p:1 w:20 l:0 slots:null | id:2 r:1 d:6 p:3 w:100 l:0 slots:null | id:3 r:2 d:3 p:2 w:10 l:0 slots:null | id:4 r:1 d:6 p:1 w:5 l:0 slots:1 | id:6 r:6 d:8 p:3 w:1 l:0 slots:null"
+2025-09-19,15:30:32,test7,40,id:2 r:2 d:3 p:1 w:30 l:80 slots:3 | id:3 r:3 d:4 p:1 w:30 l:80 slots:4 | id:4 r:5 d:6 p:1 w:40 l:50 slots:6 | id:1 r:1 d:8 p:6 w:60 l:60 slots:null
