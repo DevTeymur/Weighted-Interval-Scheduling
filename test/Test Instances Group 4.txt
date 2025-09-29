@@ -59,7 +59,7 @@ Output:
 15
 
 
-Case 4 - found 0
+Case 4
 
 Input:  
 5
@@ -95,7 +95,7 @@ null
 0
 
 
-Case 6 - found 125
+Case 6
 
 Input:
 6
@@ -116,7 +116,7 @@ null
 130
 
 
-Case 7 - found 40
+Case 7
 
 Input:
 4
