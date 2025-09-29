@@ -121,7 +121,10 @@ def run_online_algorithm_from_file(input_file):
         job = compute_score(job)
         schedule_job(job)
     
-    print(f"\nFinal total profit: {total_profit}")
+    # Extract base test name (without _online or .txt)
+    base_test_name = os.path.splitext(os.path.basename(input_file))[0]
+    optimal = optimal_profits.get(base_test_name.replace('_online','').replace('_offline',''), 'N/A')
+    print(f"\nFinal total profit: {total_profit} | Optimal: {optimal}")
     log_results_csv(test_case_name)
     save_results_txt(test_case_name)
 
