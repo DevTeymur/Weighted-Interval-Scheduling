@@ -1,57 +1,37 @@
 import os
+from datetime import datetime
+import pandas as pd
 from read_file import read_jobs
 
 def get_time_horizon(jobs):
-    return max(job["d"] for job in jobs)
-    # return max(job["d"]-1 for job in jobs)   # since deadline is exclusive
+    return max(job["d"] for job in jobs)   # deadline inclusive
 
-
-def dp_schedule(jobs):
-    """
-    DP for optimal offline schedule (preemptive).
-    Idea: jobs sorted by deadline. State is index of job and available time slots.
-    For simplicity: brute-force DP over subsets (exact optimal).
-    """
+def dp_schedule(jobs, test_case_name):
     n = len(jobs)
-    T = get_time_horizon(jobs)
-
-    # Sort jobs by deadline for consistency
     jobs = sorted(jobs, key=lambda x: x["d"])
 
-    # DP dictionary: (index, used_slots) -> max profit
     from functools import lru_cache
-
     @lru_cache(None)
     def dp(i, used_mask):
         if i == n:
             return 0
-
         job = jobs[i]
         best = -10**9
-
-        # Option 1: skip job → pay penalty
         skip_profit = -job["l"] + dp(i+1, used_mask)
         best = max(best, skip_profit)
-
-        # Option 2: try to schedule job if enough slots available
         available_slots = [t for t in range(job["r"], job["d"]+1) if not (used_mask >> t) & 1]
-        # available_slots = [t for t in range(job["r"], job["d"]) if not (used_mask >> t) & 1]
-
         if len(available_slots) >= job["p"]:
-            # pick earliest p slots (any feasible subset works since only profit matters)
             new_mask = used_mask
             for t in available_slots[:job["p"]]:
                 new_mask |= (1 << t)
             take_profit = job["w"] + dp(i+1, new_mask)
             best = max(best, take_profit)
-
         return best
 
     total_profit = dp(0, 0)
-
-    # reconstruction
     assigned = {job["id"]: [] for job in jobs}
     status = {}
+    scheduled_jobs = []
 
     def reconstruct(i, used_mask):
         if i == n:
@@ -61,30 +41,79 @@ def dp_schedule(jobs):
         best = dp(i, used_mask)
         if best == skip_profit:
             status[job["id"]] = f"NOT done → -{job['l']}"
+            job["assigned_slots"] = None
+            scheduled_jobs.append(job)
             reconstruct(i+1, used_mask)
             return
-        # else scheduled
         available_slots = [t for t in range(job["r"], job["d"]+1) if not (used_mask >> t) & 1]
         new_mask = used_mask
+        slots = []
         for t in available_slots[:job["p"]]:
             new_mask |= (1 << t)
             assigned[job["id"]].append(t)
+            slots.append(t)
         status[job["id"]] = f"DONE → +{job['w']}"
+        job["assigned_slots"] = slots
+        scheduled_jobs.append(job)
         reconstruct(i+1, new_mask)
 
     reconstruct(0, 0)
 
-    # Pretty print results
+    # Pretty print
     print("Schedule results:")
     for job in jobs:
         slots = assigned[job["id"]]
         print(f"Job {job['id']} {status[job['id']]}, slots = {slots if slots else 'null'}")
     print(f"\nTotal profit: {total_profit}")
 
+    # Save results
+    save_results_txt(test_case_name, scheduled_jobs, total_profit)
+    log_results_csv(test_case_name, scheduled_jobs, total_profit)
+
     return assigned, total_profit
 
 
+# ---------------------------
+# Save results to CSV
+# ---------------------------
+def log_results_csv(test_case_name, scheduled_jobs, total_profit, csv_file="results_log.csv"):
+    job_details = []
+    for job in scheduled_jobs:
+        slots = ",".join(map(str, job.get("assigned_slots", []))) if job.get("assigned_slots") else "null"
+        job_details.append(f"id:{job['id']} r:{job['r']} d:{job['d']} p:{job['p']} w:{job['w']} l:{job['l']} slots:{slots}")
+    log_data = {
+        "date": datetime.now().date(),
+        "time": datetime.now().time().strftime("%H:%M:%S"),
+        "test_case": test_case_name,
+        "total_profit": total_profit,
+        "job_details": " | ".join(job_details)
+    }
+    df_log = pd.DataFrame([log_data])
+    if os.path.exists(csv_file):
+        df_log.to_csv(csv_file, mode="a", index=False, header=False)
+    else:
+        df_log.to_csv(csv_file, index=False, header=True)
+
+# ---------------------------
+# Save results to txt file
+# ---------------------------
+def save_results_txt(test_case_name, scheduled_jobs, total_profit, output_folder="results"):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    output_path = os.path.join(output_folder, f"{test_case_name}_offline.txt")
+    with open(output_path, "w") as f:
+        for job in sorted(scheduled_jobs, key=lambda x: x["id"]):
+            if job.get("assigned_slots"):
+                f.write(",".join(map(str, job["assigned_slots"])) + "\n")
+            else:
+                f.write("null\n")
+        f.write(str(total_profit) + "\n")
+    print(f"\nResults saved to {output_path}")
+
 
 if __name__ == "__main__":
-    jobs = read_jobs("test/test3.txt")
-    assigned, profit = dp_schedule(jobs)
+    test_cases = ["test1", "test2", "test3", "test4", "test5", "test6", "test7"]
+    for test_case in test_cases:
+        jobs = read_jobs(f"test/{test_case}.txt")
+        assigned, profit = dp_schedule(jobs, test_case)
+        print("\n" + "-"*50 + "\n")
