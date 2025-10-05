@@ -3,6 +3,17 @@ from datetime import datetime
 import pandas as pd
 from read_file import read_jobs
 
+# Test instance optimal profits for reference
+optimal_profits = {
+    "test1": 133,
+    "test2": 44,
+    "test3": 30,
+    "test4": 10,
+    "test5": 0,
+    "test6": 130,
+    "test7": 70
+}
+
 def get_time_horizon(jobs):
     return max(job["d"] for job in jobs)   # deadline inclusive
 
@@ -64,7 +75,11 @@ def dp_schedule(jobs, test_case_name):
     for job in jobs:
         slots = assigned[job["id"]]
         print(f"Job {job['id']} {status[job['id']]}, slots = {slots if slots else 'null'}")
-    print(f"\nTotal profit: {total_profit}")
+    
+    # Extract base test name and show optimal comparison
+    base_test_name = test_case_name.replace('_offline', '').replace('_online', '')
+    optimal = optimal_profits.get(base_test_name, 'N/A')
+    print(f"\nTotal profit: {total_profit} | Optimal: {optimal}")
 
     # Save results
     save_results_txt(test_case_name, scheduled_jobs, total_profit)
