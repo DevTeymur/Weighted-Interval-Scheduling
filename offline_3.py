@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 import pandas as pd
+from itertools import combinations
 from read_file import read_jobs
 
 # Test instance optimal profits for reference
@@ -15,11 +16,17 @@ optimal_profits = {
 }
 
 def get_time_horizon(jobs):
-    return max(job["d"] for job in jobs)   # deadline inclusive
+    return max(job["d"] for job in jobs)
 
 def dp_schedule(jobs, test_case_name):
     n = len(jobs)
     jobs = sorted(jobs, key=lambda x: x["d"])
+    
+    # Check time horizon limit for bitmask approach
+    max_time = get_time_horizon(jobs)
+    if max_time > 62:  # Safe limit for 64-bit systems
+        print(f"Error: Time horizon ({max_time}) exceeds bitmask limit (62). Need alternative approach.")
+        return {}, 0
 
     from functools import lru_cache
     @lru_cache(None)
@@ -30,13 +37,16 @@ def dp_schedule(jobs, test_case_name):
         best = -10**9
         skip_profit = -job["l"] + dp(i+1, used_mask)
         best = max(best, skip_profit)
-        available_slots = [t for t in range(job["r"], job["d"]+1) if not (used_mask >> t) & 1]
-        if len(available_slots) >= job["p"]:
-            new_mask = used_mask
-            for t in available_slots[:job["p"]]:
-                new_mask |= (1 << t)
-            take_profit = job["w"] + dp(i+1, new_mask)
-            best = max(best, take_profit)
+        
+        avail = [t for t in range(job["r"], job["d"] + 1) if not (used_mask >> t) & 1]
+        if len(avail) >= job["p"]:
+            best_take = -10**9
+            for S in combinations(avail, job["p"]):
+                new_mask = used_mask
+                for t in S:
+                    new_mask |= (1 << t)
+                best_take = max(best_take, job["w"] + dp(i + 1, new_mask))
+            best = max(best, best_take)
         return best
 
     total_profit = dp(0, 0)
@@ -56,27 +66,40 @@ def dp_schedule(jobs, test_case_name):
             scheduled_jobs.append(job)
             reconstruct(i+1, used_mask)
             return
-        available_slots = [t for t in range(job["r"], job["d"]+1) if not (used_mask >> t) & 1]
-        new_mask = used_mask
-        slots = []
-        for t in available_slots[:job["p"]]:
-            new_mask |= (1 << t)
-            assigned[job["id"]].append(t)
-            slots.append(t)
-        status[job["id"]] = f"DONE → +{job['w']}"
-        job["assigned_slots"] = slots
-        scheduled_jobs.append(job)
-        reconstruct(i+1, new_mask)
+        
+        avail = [t for t in range(job["r"], job["d"] + 1) if not (used_mask >> t) & 1]
+        if best != skip_profit:
+            best_S = None
+            best_take = -10**9
+            for S in combinations(avail, job["p"]):
+                nm = used_mask
+                for t in S:
+                    nm |= (1 << t)
+                val = job["w"] + dp(i + 1, nm)
+                if val > best_take:
+                    best_take, best_S = val, S
+            
+            # assign best_S
+            new_mask = used_mask
+            slots = []
+            for t in best_S:
+                new_mask |= (1 << t)
+                assigned[job["id"]].append(t)
+                slots.append(t)
+            status[job["id"]] = f"DONE → +{job['w']}"
+            job["assigned_slots"] = sorted(slots)
+            scheduled_jobs.append(job)
+            reconstruct(i+1, new_mask)
 
     reconstruct(0, 0)
 
-    # Pretty print
+    # Pretty print with optimal comparison
     print("Schedule results:")
     for job in jobs:
         slots = assigned[job["id"]]
         print(f"Job {job['id']} {status[job['id']]}, slots = {slots if slots else 'null'}")
     
-    # Extract base test name and show optimal comparison
+    # Extract base test name for optimal lookup
     base_test_name = test_case_name.replace('_offline', '').replace('_online', '')
     optimal = optimal_profits.get(base_test_name, 'N/A')
     print(f"\nTotal profit: {total_profit} | Optimal: {optimal}")
@@ -86,7 +109,6 @@ def dp_schedule(jobs, test_case_name):
     log_results_csv(test_case_name, scheduled_jobs, total_profit)
 
     return assigned, total_profit
-
 
 # ---------------------------
 # Save results to CSV
@@ -124,7 +146,6 @@ def save_results_txt(test_case_name, scheduled_jobs, total_profit, output_folder
                 f.write("null\n")
         f.write(str(total_profit) + "\n")
     print(f"\nResults saved to {output_path}")
-
 
 if __name__ == "__main__":
     test_cases = ["test1", "test2", "test3", "test4", "test5", "test6", "test7"]

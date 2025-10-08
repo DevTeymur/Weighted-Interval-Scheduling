@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 import pandas as pd
+import itertools
 from read_file import read_jobs
 
 # Test instance optimal profits for reference
@@ -32,11 +33,12 @@ def dp_schedule(jobs, test_case_name):
         best = max(best, skip_profit)
         available_slots = [t for t in range(job["r"], job["d"]+1) if not (used_mask >> t) & 1]
         if len(available_slots) >= job["p"]:
-            new_mask = used_mask
-            for t in available_slots[:job["p"]]:
-                new_mask |= (1 << t)
-            take_profit = job["w"] + dp(i+1, new_mask)
-            best = max(best, take_profit)
+            for chosen in itertools.combinations(available_slots, job["p"]):
+                new_mask = used_mask
+                for t in chosen:
+                    new_mask |= (1 << t)
+                take_profit = job["w"] + dp(i+1, new_mask)
+                best = max(best, take_profit)
         return best
 
     total_profit = dp(0, 0)
@@ -56,15 +58,31 @@ def dp_schedule(jobs, test_case_name):
             scheduled_jobs.append(job)
             reconstruct(i+1, used_mask)
             return
+        
+        # Find the best combination that leads to the optimal solution
         available_slots = [t for t in range(job["r"], job["d"]+1) if not (used_mask >> t) & 1]
+        best_chosen = None
+        best_value = -10**9
+        
+        for chosen in itertools.combinations(available_slots, job["p"]):
+            new_mask = used_mask
+            for t in chosen:
+                new_mask |= (1 << t)
+            value = job["w"] + dp(i+1, new_mask)
+            if value > best_value:
+                best_value = value
+                best_chosen = chosen
+        
+        # Apply the best combination
         new_mask = used_mask
         slots = []
-        for t in available_slots[:job["p"]]:
+        for t in best_chosen:
             new_mask |= (1 << t)
             assigned[job["id"]].append(t)
             slots.append(t)
+        
         status[job["id"]] = f"DONE → +{job['w']}"
-        job["assigned_slots"] = slots
+        job["assigned_slots"] = sorted(slots)
         scheduled_jobs.append(job)
         reconstruct(i+1, new_mask)
 
