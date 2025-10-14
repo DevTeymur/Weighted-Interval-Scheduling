@@ -7,7 +7,7 @@ from read_file import read_jobs
 optimal_profits = {
     "test1": 133,
     "test2": 44,
-    "test3": 15,
+    "test3": 30,
     "test4": 10,
     "test5": 0,
     "test6": 130,
