@@ -1,4 +1,4 @@
-# Algorithms for Decision Support - Job Scheduling Project
+# Algorithms for Decision Support - Weighted Job Scheduling Algorithms
 
 A comprehensive implementation and comparison of offline and online algorithms for the **Job Scheduling with Time Windows and Penalties** problem.
 
